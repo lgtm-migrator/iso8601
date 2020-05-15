@@ -6,15 +6,15 @@ import (
 )
 
 const (
-	// Day used when parse duration day.
+	// Day used when convert to time.Duration.
 	Day = time.Hour * 24
-	// Week used when parse duration year.
+	// Week used when convert to time.Duration.
 	Week = Day * 7
-	// Month used when parse duration year.
+	// Month used when convert to time.Duration.
 	// Data from moment.js:
 	// 400 years have 146097 days (taking into account leap year rules)
 	Month = Day / 10 * 146097 / 4800 * 10
-	// Year used when parse duration year.
+	// Year used when convert to time.Duration.
 	Year = Month * 12
 )
 
