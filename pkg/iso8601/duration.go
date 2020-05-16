@@ -439,15 +439,15 @@ func ParseDuration(s string) (ret Duration, err error) {
 			}
 		} else {
 			switch u {
-			case 'S':
-				ret.Seconds += v
-				ret.Nanoseconds += int64(float64(f) * (float64(time.Second/time.Nanosecond) / scale))
-			case 'M':
-				ret.Minutes += v
-				ret.Seconds += int64(float64(f) * (float64(time.Minute/time.Second) / scale))
 			case 'H':
 				ret.Hours += v
 				ret.Minutes += int64(float64(f) * (float64(time.Hour/time.Minute) / scale))
+			case 'M':
+				ret.Minutes += v
+				ret.Seconds += int64(float64(f) * (float64(time.Minute/time.Second) / scale))
+			case 'S':
+				ret.Seconds += v
+				ret.Nanoseconds += int64(float64(f) * (float64(time.Second/time.Nanosecond) / scale))
 			default:
 				// unknown unit
 				err = ErrInvalidDuration{String: orig}
