@@ -16,6 +16,9 @@ const (
 	Month = Day / 10 * 146097 / 4800 * 10
 	// Year used when convert to time.Duration.
 	Year = Month * 12
+
+	maxInt64 int64 = 1<<63 - 1
+	minInt64 int64 = -1 << 63
 )
 
 // Duration contains iso8601 duration data.
@@ -42,18 +45,99 @@ func (d Duration) Direction() int64 {
 	return 1
 }
 
+// ErrOverflow indicate value is overflowed.
+var ErrOverflow = errors.New("iso8601: overflow")
+
+// addInt handle overflow when add int64
+func addInt(base int64, v int64) (int64, error) {
+	if base > 0 {
+		if v > maxInt64-base ||
+			v < minInt64+base {
+			return 0, ErrOverflow
+		}
+	} else {
+		if v > maxInt64+base ||
+			(v < minInt64-base) {
+			return 0, ErrOverflow
+		}
+	}
+	return base + v, nil
+}
+
+// multiplyInt handle overflow when multiple int64
+func multiplyInt(base int64, v int64) (int64, error) {
+	if base > 0 {
+		if v > maxInt64/base ||
+			v < minInt64/base {
+			return 0, ErrOverflow
+		}
+	} else {
+		if v > minInt64/base ||
+			v < maxInt64/base {
+			return 0, ErrOverflow
+		}
+	}
+	return base * v, nil
+}
+func addNano(base int64, num int64, unit time.Duration) (int64, error) {
+	var v int64
+	var err error
+	v, err = multiplyInt(int64(unit), num)
+	if err != nil {
+		return 0, err
+	}
+	return addInt(base, v)
+}
+
 // TimeDuration convert this to time.Duration.
 // Will loose some precision because days, months, years can have different length.
-func (d Duration) TimeDuration() time.Duration {
-	return time.Duration(
-		(d.Years*int64(Year) +
-			d.Weeks*int64(Week) +
-			d.Days*int64(Day) +
-			d.Hours*int64(time.Hour) +
-			d.Minutes*int64(time.Minute) +
-			d.Seconds*int64(time.Second) +
-			d.Nanoseconds*int64(time.Nanosecond)) *
-			d.Direction())
+func (d Duration) TimeDuration() (ret time.Duration, err error) {
+	var nano int64
+	nano, err = addNano(nano, d.Years, Year)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Months, Month)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Weeks, Week)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Days, Day)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Hours, time.Hour)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Minutes, time.Minute)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Seconds, time.Second)
+	if err != nil {
+		return
+	}
+	nano, err = addNano(nano, d.Nanoseconds, time.Nanosecond)
+	if err != nil {
+		return
+	}
+	if d.Negative {
+		nano = -nano
+	}
+	return time.Duration(nano), nil
+}
+
+// MustTimeDuration execute TimeDuration and panic if error.
+func (d Duration) MustTimeDuration() time.Duration {
+	var ret, err = d.TimeDuration()
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }
 
 func (d Duration) String() string {
@@ -309,12 +393,12 @@ func leadingInt(s string) (x int64, rem string, err error) {
 		}
 		if x > (1<<63-1)/10 {
 			// overflow
-			return 0, "", errLeadingInt
+			return 0, "", ErrOverflow
 		}
 		x = x*10 + int64(c) - '0'
 		if x < 0 {
 			// overflow
-			return 0, "", errLeadingInt
+			return 0, "", ErrOverflow
 		}
 	}
 	return x, s[i:], nil

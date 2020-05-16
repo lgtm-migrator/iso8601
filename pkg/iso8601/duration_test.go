@@ -1,7 +1,6 @@
 package iso8601
 
 import (
-	"math"
 	"testing"
 	"time"
 
@@ -31,29 +30,89 @@ func TestStringDuration(t *testing.T) {
 		{duration: Duration{Seconds: -1}, expected: "PT-1S"},
 		{duration: Duration{Minutes: -1, Seconds: -1}, expected: "PT-1M-1S"},
 		{duration: Duration{
-			Years:       math.MaxInt64,
-			Months:      math.MaxInt64,
-			Weeks:       math.MaxInt64,
-			Days:        math.MaxInt64,
-			Hours:       math.MaxInt64,
-			Minutes:     math.MaxInt64,
-			Seconds:     math.MaxInt64,
+			Years:       maxInt64,
+			Months:      maxInt64,
+			Weeks:       maxInt64,
+			Days:        maxInt64,
+			Hours:       maxInt64,
+			Minutes:     maxInt64,
+			Seconds:     maxInt64,
 			Nanoseconds: int64(time.Second) - 1,
 		}, expected: "P9223372036854775807Y9223372036854775807M9223372036854775807W9223372036854775807DT9223372036854775807H9223372036854775807M9223372036854775807.999999999S"},
 		{duration: Duration{
-			Years:       math.MinInt64,
-			Months:      math.MinInt64,
-			Weeks:       math.MinInt64,
-			Days:        math.MinInt64,
-			Hours:       math.MinInt64,
-			Minutes:     math.MinInt64,
-			Seconds:     math.MinInt64,
+			Years:       minInt64,
+			Months:      minInt64,
+			Weeks:       minInt64,
+			Days:        minInt64,
+			Hours:       minInt64,
+			Minutes:     minInt64,
+			Seconds:     minInt64,
 			Nanoseconds: -int64(time.Second) + 1,
 			Negative:    true,
 		}, expected: "-P-9223372036854775808Y-9223372036854775808M-9223372036854775808W-9223372036854775808DT-9223372036854775808H-9223372036854775808M-9223372036854775808.999999999S"},
 	} {
 		t.Run(c.expected, func(t *testing.T) {
 			assert.Equal(t, c.expected, c.duration.String())
+		})
+	}
+}
+
+func TestDurationTimeDuration(t *testing.T) {
+	for _, c := range []struct {
+		duration Duration
+		expected time.Duration
+		error    error
+	}{
+		{duration: Duration{}, expected: 0},
+		{duration: Duration{Months: 1}, expected: Month},
+		{duration: Duration{Years: 1}, expected: Year},
+		{duration: Duration{Weeks: 1}, expected: Week},
+		{duration: Duration{Days: 1}, expected: Day},
+		{duration: Duration{Hours: 24}, expected: 24 * time.Hour},
+		{duration: Duration{Hours: 1}, expected: time.Hour},
+		{duration: Duration{Minutes: 1}, expected: time.Minute},
+		{duration: Duration{Seconds: 1}, expected: time.Second},
+		{duration: Duration{Nanoseconds: 1}, expected: time.Nanosecond},
+		{duration: Duration{Minutes: 1, Seconds: 1}, expected: time.Minute + time.Second},
+		{duration: Duration{Negative: true, Hours: 1}, expected: -time.Hour},
+		{duration: Duration{Negative: true}, expected: 0},
+		{duration: Duration{Hours: -1}, expected: -time.Hour},
+		{duration: Duration{Minutes: -1}, expected: -time.Minute},
+		{duration: Duration{Seconds: -1}, expected: -time.Second},
+		{duration: Duration{Minutes: -1, Seconds: -1}, expected: -time.Minute - time.Second},
+		{duration: Duration{Years: maxInt64/int64(Year) + 1}, error: ErrOverflow},
+		{duration: Duration{Years: maxInt64 / int64(Year), Months: 13}, error: ErrOverflow},
+		{duration: Duration{Years: -maxInt64/int64(Year) - 1}, error: ErrOverflow},
+		{duration: Duration{Years: -maxInt64 / int64(Year), Months: -13}, error: ErrOverflow},
+		{duration: Duration{Months: maxInt64/int64(Month) + 1}, error: ErrOverflow},
+		{duration: Duration{Months: maxInt64 / int64(Month), Weeks: 5}, error: ErrOverflow},
+		{duration: Duration{Months: -maxInt64/int64(Month) - 1}, error: ErrOverflow},
+		{duration: Duration{Months: -maxInt64 / int64(Month), Weeks: -5}, error: ErrOverflow},
+		{duration: Duration{Weeks: maxInt64/int64(Week) + 1}, error: ErrOverflow},
+		{duration: Duration{Weeks: maxInt64 / int64(Week), Days: 8}, error: ErrOverflow},
+		{duration: Duration{Weeks: -maxInt64/int64(Week) - 1}, error: ErrOverflow},
+		{duration: Duration{Weeks: -maxInt64 / int64(Week), Days: -8}, error: ErrOverflow},
+		{duration: Duration{Days: maxInt64/int64(Day) + 1}, error: ErrOverflow},
+		{duration: Duration{Days: maxInt64 / int64(Day), Hours: 25}, error: ErrOverflow},
+		{duration: Duration{Days: -maxInt64/int64(Day) - 1}, error: ErrOverflow},
+		{duration: Duration{Days: -maxInt64 / int64(Day), Hours: -25}, error: ErrOverflow},
+		{duration: Duration{Hours: maxInt64/int64(time.Hour) + 1}, error: ErrOverflow},
+		{duration: Duration{Hours: maxInt64 / int64(time.Hour), Minutes: 61}, error: ErrOverflow},
+		{duration: Duration{Hours: -maxInt64/int64(time.Hour) - 1}, error: ErrOverflow},
+		{duration: Duration{Hours: -maxInt64 / int64(time.Hour), Minutes: -61}, error: ErrOverflow},
+		{duration: Duration{Minutes: maxInt64/int64(time.Minute) + 1}, error: ErrOverflow},
+		{duration: Duration{Minutes: maxInt64 / int64(time.Minute), Seconds: 61}, error: ErrOverflow},
+		{duration: Duration{Minutes: -maxInt64/int64(time.Minute) - 1}, error: ErrOverflow},
+		{duration: Duration{Minutes: -maxInt64 / int64(time.Minute), Seconds: -61}, error: ErrOverflow},
+		{duration: Duration{Seconds: maxInt64/int64(time.Second) + 1}, error: ErrOverflow},
+		{duration: Duration{Seconds: maxInt64 / int64(time.Second), Nanoseconds: 1e9 + 1}, error: ErrOverflow},
+		{duration: Duration{Seconds: -maxInt64/int64(time.Second) - 1}, error: ErrOverflow},
+		{duration: Duration{Seconds: -maxInt64 / int64(time.Second), Nanoseconds: -1e9 - 1}, error: ErrOverflow},
+	} {
+		t.Run("", func(t *testing.T) {
+			v, err := c.duration.TimeDuration()
+			require.Equal(t, c.error, err)
+			assert.Equal(t, c.expected, v)
 		})
 	}
 }
@@ -161,5 +220,20 @@ func BenchmarkParseDuration(b *testing.B) {
 func BenchmarkNewDuration(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = NewDuration(int64(Year))
+	}
+}
+
+func BenchmarkDurationTimeDuration(b *testing.B) {
+	x := Duration{
+		Years:       100,
+		Weeks:       100,
+		Months:      100,
+		Days:        100,
+		Hours:       100,
+		Minutes:     100,
+		Seconds:     100,
+		Nanoseconds: 1000}
+	for i := 0; i < b.N; i++ {
+		_ = x.MustTimeDuration()
 	}
 }
