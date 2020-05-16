@@ -154,6 +154,25 @@ func (d Duration) String() string {
 	return string(buf[w:])
 }
 
+// NewDuration create duration from nanoseconds (e.g. time.Duration)
+// Only use unit that below days, because days can have different length (e.g. DST).
+// just declaring a Duration variable is enough to use duration.
+func NewDuration(nanoseconds int64) *Duration {
+	var ret = new(Duration)
+	if nanoseconds < 0 {
+		ret.Negative = true
+		nanoseconds = -nanoseconds
+	}
+	ret.Hours = nanoseconds / int64(time.Hour)
+	nanoseconds %= int64(time.Hour)
+	ret.Minutes = nanoseconds / int64(time.Minute)
+	nanoseconds %= int64(time.Minute)
+	ret.Seconds = nanoseconds / int64(time.Second)
+	nanoseconds %= int64(time.Second)
+	ret.Nanoseconds = nanoseconds
+	return ret
+}
+
 // fmtUint formats v into the tail of buf.
 // It returns the index where the output begins.
 func fmtUint(buf []byte, v uint64) int {

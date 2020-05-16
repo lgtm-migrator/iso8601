@@ -58,6 +58,43 @@ func TestStringDuration(t *testing.T) {
 	}
 }
 
+func TestNewDuration(t *testing.T) {
+	for _, c := range []struct {
+		nano     int64
+		expected Duration
+	}{
+		{nano: 0, expected: Duration{}},
+		{nano: 1, expected: Duration{Nanoseconds: 1}},
+		{nano: int64(time.Hour), expected: Duration{Hours: 1}},
+		{nano: int64(time.Minute), expected: Duration{Minutes: 1}},
+		{nano: int64(time.Second), expected: Duration{Seconds: 1}},
+		{nano: int64(time.Millisecond), expected: Duration{Nanoseconds: 1e6}},
+		{nano: int64(time.Microsecond), expected: Duration{Nanoseconds: 1e3}},
+		{nano: int64(time.Nanosecond), expected: Duration{Nanoseconds: 1}},
+		{nano: -int64(time.Hour), expected: Duration{Hours: 1, Negative: true}},
+		{nano: -int64(time.Minute), expected: Duration{Minutes: 1, Negative: true}},
+		{nano: -int64(time.Second), expected: Duration{Seconds: 1, Negative: true}},
+		{nano: -int64(time.Millisecond), expected: Duration{Nanoseconds: 1e6, Negative: true}},
+		{nano: -int64(time.Microsecond), expected: Duration{Nanoseconds: 1e3, Negative: true}},
+		{nano: -int64(time.Nanosecond), expected: Duration{Nanoseconds: 1, Negative: true}},
+		{nano: 1000 * int64(time.Hour), expected: Duration{Hours: 1000}},
+		{
+			nano: int64(time.Nanosecond +
+				time.Microsecond +
+				time.Millisecond +
+				time.Second +
+				time.Minute +
+				time.Hour),
+			expected: Duration{Hours: 1, Minutes: 1, Seconds: 1, Nanoseconds: 1001001},
+		},
+	} {
+		t.Run(c.expected.String(), func(t *testing.T) {
+			v := NewDuration(c.nano)
+			assert.Equal(t, &c.expected, v)
+		})
+	}
+}
+
 func TestParseDuration(t *testing.T) {
 	for _, c := range []struct {
 		s        string
@@ -110,6 +147,7 @@ func BenchmarkDurationString(b *testing.B) {
 		_ = x.String()
 	}
 }
+
 func BenchmarkParseDuration(b *testing.B) {
 	x := "P1Y23M34W56DT78H90M12.3456789S"
 	for i := 0; i < b.N; i++ {
@@ -117,5 +155,11 @@ func BenchmarkParseDuration(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func BenchmarkNewDuration(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = NewDuration(int64(Year))
 	}
 }

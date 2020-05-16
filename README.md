@@ -13,7 +13,11 @@ go get github.com/NateScarlet/iso8601
 ```
 
 ```go
-import github.com/NateScarlet/iso8601/pkg/iso8601
+import (
+    "time"
+
+    "github.com/NateScarlet/iso8601/pkg/iso8601"
+)
 
 d, err := iso8601.ParseDuration("P1D")
 // iso8601.Duration{Days: 1}, nil
@@ -36,6 +40,12 @@ iso8601.ParseDuration("P0.5DT0.5H")
 
 iso8601.ParseDuration("P.D")
 // nil, iso8601.ErrInvalidDuration
+
+iso8601.NewDuration(int64(time.Hour))
+// *iso8601.Duration{Hours: 1}
+
+iso8601.NewDuration(-int64(time.Hour))
+// *iso8601.Duration{Hours: 1, Negative: true}
 ```
 
 ## Benchmark
@@ -43,6 +53,10 @@ iso8601.ParseDuration("P.D")
 Athlon 64 X2 Dual core 5600+ 2.9Ghz
 
 ```text
-BenchmarkDurationString-2     3603614        378 ns/op       48 B/op        1 allocs/op
-BenchmarkParseDuration-2      3438430        332 ns/op        0 B/op        0 allocs/op
+goos: windows
+goarch: amd64
+pkg: github.com/NateScarlet/iso8601/pkg/iso8601
+BenchmarkDurationString-2     3726703        330 ns/op       48 B/op        1 allocs/op
+BenchmarkParseDuration-2      3625368        307 ns/op        0 B/op        0 allocs/op
+BenchmarkNewDuration-2       1000000000          1.09 ns/op        0 B/op        0 allocs/op
 ```
