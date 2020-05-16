@@ -316,62 +316,6 @@ func fmtFrac(buf []byte, v uint64, prec int) (nw int, nv uint64) {
 	return w, v
 }
 
-// FormatDuration to iso8601 format.
-func FormatDuration(d time.Duration) string {
-	if d == 0 {
-		return "P0D"
-	}
-	var buf [32]byte
-	w := len(buf)
-
-	u := uint64(d)
-	neg := d < 0
-	if neg {
-		u = -u
-	}
-
-	w--
-	buf[w] = 'S'
-
-	w, u = fmtFrac(buf[:w], u, 9)
-
-	// u is now integer seconds
-	w = fmtUint(buf[:w], u%60)
-	u /= 60
-	if buf[w] == '0' && buf[w+1] == 'S' {
-		w += 2
-	}
-
-	// u is now integer minutes
-	if u > 0 {
-		w--
-		buf[w] = 'M'
-		w = fmtUint(buf[:w], u%60)
-		u /= 60
-		if buf[w] == '0' {
-			w += 2
-		}
-
-		// u is now integer hours
-		// Stop at hours because days can be different lengths.
-		if u > 0 {
-			w--
-			buf[w] = 'H'
-			w = fmtUint(buf[:w], u)
-		}
-	}
-	w--
-	buf[w] = 'T'
-	w--
-	buf[w] = 'P'
-	if neg {
-		w--
-		buf[w] = '-'
-	}
-
-	return string(buf[w:])
-}
-
 var errLeadingInt = errors.New("iso8601: bad [0-9]*") // never printed
 func leadingNegative(s string) (x bool, rem string) {
 	i := 0
