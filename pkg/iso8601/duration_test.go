@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStringDuration(t *testing.T) {
+func TestDurationString(t *testing.T) {
 	for _, c := range []struct {
 		duration Duration
 		expected string
