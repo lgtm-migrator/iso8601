@@ -1,5 +1,6 @@
 # iso8601
 
+[![godev](https://img.shields.io/static/v1?label=godev&message=reference&color=00add8)](https://pkg.go.dev/github.com/NateScarlet/iso8601/pkg/iso8601)
 [![build status](https://github.com/NateScarlet/iso8601/workflows/go/badge.svg)](https://github.com/NateScarlet/iso8601/actions)
 
 Process iso8601 duration without using regex.
