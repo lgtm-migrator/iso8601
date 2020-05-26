@@ -37,14 +37,6 @@ type Duration struct {
 	Negative    bool
 }
 
-// Direction return -1 if negative else 1.
-func (d Duration) Direction() int64 {
-	if d.Negative {
-		return -1
-	}
-	return 1
-}
-
 // ErrOverflow indicate value is overflowed.
 var ErrOverflow = errors.New("iso8601: overflow")
 
