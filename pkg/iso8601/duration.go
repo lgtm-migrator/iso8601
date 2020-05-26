@@ -388,7 +388,7 @@ func (err ErrInvalidDuration) Error() string {
 	return "iso8601: invalid duration " + err.String
 }
 
-// ParseDuration iso8601 duration string.
+// ParseDuration parse iso8601 duration string.
 func ParseDuration(s string) (ret Duration, err error) {
 	orig := s
 	ret.Negative, s = leadingNegative(s)
