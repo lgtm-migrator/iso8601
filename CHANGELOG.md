@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/NateScarlet/iso8601/compare/v0.2.0...v0.3.0) (2020-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove Duration.Direction method
+
+* remove Duration.Direction method ([aba6e0e](https://github.com/NateScarlet/iso8601/commit/aba6e0e6c5e85df7a62e5099f7dded3ee830e83f))
+
 ## [0.2.0](https://github.com/NateScarlet/iso8601/compare/v0.1.1...v0.2.0) (2020-05-16)
 
 
