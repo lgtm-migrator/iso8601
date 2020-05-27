@@ -48,3 +48,10 @@ func TestFormatTime(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkFormatTime(b *testing.B) {
+	var t = time.Date(2001, 2, 3, 4, 5, 6, 70e6, time.UTC)
+	for i := 0; i < b.N; i++ {
+		_ = FormatTime(t)
+	}
+}
