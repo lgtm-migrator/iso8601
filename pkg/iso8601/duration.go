@@ -310,6 +310,9 @@ func fmtFrac(buf []byte, v uint64, prec int) (nw int, nv uint64) {
 
 var errLeadingInt = errors.New("iso8601: bad [0-9]*") // never printed
 func leadingNegative(s string) (x bool, rem string) {
+	if s == "" {
+		return false, s
+	}
 	i := 0
 	c := s[0]
 	if c == '-' || c == '+' {
@@ -385,7 +388,7 @@ func ParseDuration(s string) (ret Duration, err error) {
 	orig := s
 	ret.Negative, s = leadingNegative(s)
 
-	if s[0] != 'P' {
+	if s == "" || s[0] != 'P' {
 		err = ErrInvalidDuration{String: orig}
 		return
 	}

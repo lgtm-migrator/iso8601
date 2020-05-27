@@ -158,6 +158,7 @@ func TestParseDuration(t *testing.T) {
 	for _, c := range []struct {
 		s        string
 		expected Duration
+		err      error
 	}{
 		{
 			s: "P1Y1M1W1DT1H1M1.001S",
@@ -182,10 +183,14 @@ func TestParseDuration(t *testing.T) {
 		{s: "PT0.001S", expected: Duration{Nanoseconds: 1e6}},
 		{s: "-PT1H", expected: Duration{Hours: 1, Negative: true}},
 		{s: "+PT1H", expected: Duration{Hours: 1}},
+		{s: "", err: ErrInvalidDuration{String: ""}},
+		{s: "-", expected: Duration{Negative: true}, err: ErrInvalidDuration{String: "-"}},
+		{s: "+", err: ErrInvalidDuration{String: "+"}},
+		{s: "1D", err: ErrInvalidDuration{String: "1D"}},
 	} {
 		t.Run(c.s, func(t *testing.T) {
 			v, err := ParseDuration(c.s)
-			require.NoError(t, err)
+			require.Equal(t, c.err, err)
 			assert.Equal(t, c.expected, v)
 		})
 	}
