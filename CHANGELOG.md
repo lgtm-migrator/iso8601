@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/NateScarlet/iso8601/compare/v0.3.1...v0.3.2) (2020-05-27)
+
+
+### Performance
+
+* improve FormatTime by use AppendFormat ([d437cd8](https://github.com/NateScarlet/iso8601/commit/d437cd881cad74f95e93009dd377655ca1e78797))
+* zero allocation for Decimal.String if value small ([8fd1749](https://github.com/NateScarlet/iso8601/commit/8fd1749c76d00722a30f29dc321c0c31df3f31ea))
+
 ### [0.3.1](https://github.com/NateScarlet/iso8601/compare/v0.3.0...v0.3.1) (2020-05-27)
 
 
