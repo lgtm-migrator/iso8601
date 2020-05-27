@@ -9,8 +9,7 @@ func ParseTime(s string) (time.Time, error) {
 }
 
 // FormatTime to string
-// a shortcut for string(t.AppendFormat(([32]byte{})[:0], time.RFC3339Nano))
+// a shortcut for string(t.AppendFormat(make([]byte, 0, 32), time.RFC3339Nano))
 func FormatTime(t time.Time) string {
-	var a [32]byte
-	return string(t.AppendFormat(a[:0], time.RFC3339Nano))
+	return string(t.AppendFormat(make([]byte, 0, 32), time.RFC3339Nano))
 }
