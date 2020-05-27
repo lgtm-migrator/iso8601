@@ -2,6 +2,7 @@ package iso8601
 
 import (
 	"errors"
+	"strconv"
 	"time"
 )
 
@@ -132,10 +133,83 @@ func (d Duration) MustTimeDuration() time.Duration {
 	return ret
 }
 
-func (d Duration) String() string {
-	// longest supported value: -P-9223372036854775808Y-9223372036854775808M-9223372036854775808W-9223372036854775808DT-9223372036854775808H-9223372036854775808M-9223372036854775808.999999999S
-	var buf = [256]byte{}
+// appendFrac append the fraction of v/10**prec (e.g., ".12345") into the
+// tail of buf, omitting trailing zeros. It omits the decimal
+// point too when the fraction is 0. It returns the index where the
+// output bytes begin and the value v/10**prec.
+func appendFrac(b []byte, v uint64, prec int) []byte {
+	var buf [10]byte
 	var w = len(buf)
+	var print bool
+	for i := 0; i < prec; i++ {
+		digit := v % 10
+		print = print || digit != 0
+		if print {
+			w--
+			buf[w] = byte(digit) + '0'
+		}
+		v /= 10
+	}
+	if print {
+		w--
+		buf[w] = '.'
+	}
+	return append(b, buf[w:]...)
+}
+
+// AppendFormat is like String but appends the textual
+// representation to b and returns the extended buffer.
+func (d Duration) AppendFormat(b []byte) []byte {
+	if d.Negative {
+		b = append(b, '-')
+	}
+
+	b = append(b, 'P')
+	var prefixWidth = len(b)
+
+	// Y
+	if d.Years != 0 {
+		b = strconv.AppendInt(b, d.Years, 10)
+		b = append(b, 'Y')
+	}
+
+	// M
+	if d.Months != 0 {
+		b = strconv.AppendInt(b, d.Months, 10)
+		b = append(b, 'M')
+	}
+
+	// W
+	if d.Weeks != 0 {
+		b = strconv.AppendInt(b, d.Weeks, 10)
+		b = append(b, 'W')
+	}
+
+	// D
+	if d.Days != 0 {
+		b = strconv.AppendInt(b, d.Days, 10)
+		b = append(b, 'D')
+	}
+
+	// T
+	if d.Hours != 0 ||
+		d.Minutes != 0 ||
+		d.Seconds != 0 ||
+		d.Nanoseconds != 0 {
+		b = append(b, 'T')
+	}
+
+	// H
+	if d.Hours != 0 {
+		b = strconv.AppendInt(b, d.Hours, 10)
+		b = append(b, 'H')
+	}
+
+	// M
+	if d.Minutes != 0 {
+		b = strconv.AppendInt(b, d.Minutes, 10)
+		b = append(b, 'M')
+	}
 
 	// S
 	if d.Seconds != 0 ||
@@ -154,80 +228,23 @@ func (d Duration) String() string {
 				f = uint64(int64(time.Second) + d.Nanoseconds)
 			}
 		}
-		w--
-		buf[w] = 'S'
-		var u uint64
-		w, u = fmtFrac(buf[:w], f, 9)
-		v += u
-		w = fmtUint(buf[:w], v)
 		if neg {
-			w--
-			buf[w] = '-'
+			b = append(b, '-')
 		}
+		b = strconv.AppendUint(b, v, 10)
+		b = appendFrac(b, f, 9)
+		b = append(b, 'S')
 	}
 
-	// M
-	if d.Minutes != 0 {
-		w--
-		buf[w] = 'M'
-		w = fmtInt(buf[:w], d.Minutes)
+	if len(b) == prefixWidth {
+		b = append(b, '0')
+		b = append(b, 'D')
 	}
+	return b
+}
 
-	// H
-	if d.Hours != 0 {
-		w--
-		buf[w] = 'H'
-		w = fmtInt(buf[:w], d.Hours)
-	}
-
-	// T
-	if w != len(buf) {
-		w--
-		buf[w] = 'T'
-	}
-
-	// D
-	if d.Days != 0 {
-		w--
-		buf[w] = 'D'
-		w = fmtInt(buf[:w], d.Days)
-	}
-
-	// W
-	if d.Weeks != 0 {
-		w--
-		buf[w] = 'W'
-		w = fmtInt(buf[:w], d.Weeks)
-	}
-
-	// M
-	if d.Months != 0 {
-		w--
-		buf[w] = 'M'
-		w = fmtInt(buf[:w], d.Months)
-	}
-
-	// Y
-	if d.Years != 0 {
-		w--
-		buf[w] = 'Y'
-		w = fmtInt(buf[:w], d.Years)
-	}
-
-	if w == len(buf) {
-		w--
-		buf[w] = 'D'
-		w--
-		buf[w] = '0'
-	}
-	w--
-	buf[w] = 'P'
-
-	if d.Negative {
-		w--
-		buf[w] = '-'
-	}
-	return string(buf[w:])
+func (d Duration) String() string {
+	return string(d.AppendFormat(make([]byte, 0, 256)))
 }
 
 // NewDuration create duration from nanoseconds (e.g. time.Duration)
@@ -247,65 +264,6 @@ func NewDuration(nanoseconds int64) *Duration {
 	nanoseconds %= int64(time.Second)
 	ret.Nanoseconds = nanoseconds
 	return ret
-}
-
-// fmtUint formats v into the tail of buf.
-// It returns the index where the output begins.
-func fmtUint(buf []byte, v uint64) int {
-	w := len(buf)
-	if v == 0 {
-		w--
-		buf[w] = '0'
-	} else {
-		for v > 0 {
-			w--
-			buf[w] = byte(v%10) + '0'
-			v /= 10
-		}
-	}
-	return w
-}
-
-// fmtInt formats v into the tail of buf.
-// It returns the index where the output begins.
-func fmtInt(buf []byte, v int64) int {
-	var w = len(buf)
-	var u = uint64(v)
-	var neg bool
-	if v < 0 {
-		neg = true
-		u = -u
-	}
-	w = fmtUint(buf[:w], u)
-	if neg {
-		w--
-		buf[w] = '-'
-	}
-	return w
-}
-
-// fmtFrac formats the fraction of v/10**prec (e.g., ".12345") into the
-// tail of buf, omitting trailing zeros. It omits the decimal
-// point too when the fraction is 0. It returns the index where the
-// output bytes begin and the value v/10**prec.
-func fmtFrac(buf []byte, v uint64, prec int) (nw int, nv uint64) {
-	// Omit trailing zeros up to and including decimal point.
-	w := len(buf)
-	print := false
-	for i := 0; i < prec; i++ {
-		digit := v % 10
-		print = print || digit != 0
-		if print {
-			w--
-			buf[w] = byte(digit) + '0'
-		}
-		v /= 10
-	}
-	if print {
-		w--
-		buf[w] = '.'
-	}
-	return w, v
 }
 
 var errLeadingInt = errors.New("iso8601: bad [0-9]*") // never printed

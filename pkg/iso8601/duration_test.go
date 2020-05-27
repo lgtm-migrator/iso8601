@@ -23,6 +23,7 @@ func TestDurationString(t *testing.T) {
 		{duration: Duration{Minutes: 1}, expected: "PT1M"},
 		{duration: Duration{Seconds: 1}, expected: "PT1S"},
 		{duration: Duration{Nanoseconds: 1}, expected: "PT0.000000001S"},
+		{duration: Duration{Nanoseconds: 1e3}, expected: "PT0.000001S"},
 		{duration: Duration{Minutes: 1, Seconds: 1}, expected: "PT1M1S"},
 		{duration: Duration{Negative: true}, expected: "-P0D"},
 		{duration: Duration{Hours: -1}, expected: "PT-1H"},
@@ -196,15 +197,35 @@ func TestParseDuration(t *testing.T) {
 	}
 }
 
-func BenchmarkDurationString(b *testing.B) {
+func BenchmarkDurationStringLen22(b *testing.B) {
+	// -P1Y-2M3W-4DT5H-6M7.8S
 	x := Duration{
-		Years:       1234,
-		Months:      -1234,
-		Weeks:       1234,
-		Days:        -1234,
-		Hours:       1234,
-		Minutes:     -1234,
-		Nanoseconds: 1234,
+		Years:       1,
+		Months:      -2,
+		Weeks:       3,
+		Days:        -4,
+		Hours:       5,
+		Minutes:     -6,
+		Seconds:     7,
+		Nanoseconds: 8e8,
+		Negative:    true,
+	}
+	for i := 0; i < b.N; i++ {
+		_ = x.String()
+	}
+}
+
+func BenchmarkDurationStringLen160(b *testing.B) {
+	// -P-9223372036854775808Y-9223372036854775808M-9223372036854775808W-9223372036854775808DT-9223372036854775808H-9223372036854775808M-9223372036854775808.999999999S
+	x := Duration{
+		Years:       minInt64,
+		Months:      minInt64,
+		Weeks:       minInt64,
+		Days:        minInt64,
+		Hours:       minInt64,
+		Minutes:     minInt64,
+		Seconds:     minInt64,
+		Nanoseconds: -int64(time.Second) + 1,
 		Negative:    true,
 	}
 	for i := 0; i < b.N; i++ {

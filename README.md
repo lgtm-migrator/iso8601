@@ -77,10 +77,11 @@ Athlon 64 X2 Dual core 5600+ 2.9Ghz
 goos: windows
 goarch: amd64
 pkg: github.com/NateScarlet/iso8601/pkg/iso8601
-BenchmarkDurationString-2           2767221        395 ns/op       48 B/op        1 allocs/op
-BenchmarkParseDuration-2            3468208        360 ns/op        0 B/op        0 allocs/op
-BenchmarkNewDuration-2             978344197          1.47 ns/op        0 B/op        0 allocs/op
-BenchmarkDurationTimeDuration-2     2123919        655 ns/op        0 B/op        0 allocs/op
-BenchmarkParseTime-2                1581033        839 ns/op        0 B/op        0 allocs/op
-BenchmarkFormatTime-2               1390497        803 ns/op        0 B/op        0 allocs/op
+BenchmarkDurationStringLen22-2      4095756        356 ns/op        0 B/op        0 allocs/op
+BenchmarkDurationStringLen160-2     1000000       1288 ns/op      160 B/op        1 allocs/op
+BenchmarkParseDuration-2            3669727        405 ns/op        0 B/op        0 allocs/op
+BenchmarkNewDuration-2             1000000000          1.29 ns/op        0 B/op        0 allocs/op
+BenchmarkDurationTimeDuration-2     1887405        602 ns/op        0 B/op        0 allocs/op
+BenchmarkParseTime-2                1406799        832 ns/op        0 B/op        0 allocs/op
+BenchmarkFormatTime-2               1442318        782 ns/op        0 B/op        0 allocs/op
 ```
