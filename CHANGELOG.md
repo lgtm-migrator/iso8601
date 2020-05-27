@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/NateScarlet/iso8601/compare/v0.3.0...v0.3.1) (2020-05-27)
+
+
+### Features
+
+* add shortcut for time methods ([51299c1](https://github.com/NateScarlet/iso8601/commit/51299c1f5a6371603a0792c16b4fd81d6f129807))
+
+
+### Bug Fixes
+
+* ParseDuration cause index out of range ([0db5f0a](https://github.com/NateScarlet/iso8601/commit/0db5f0a13bf89e161b9139653304298c3709d2c1))
+
 ## [0.3.0](https://github.com/NateScarlet/iso8601/compare/v0.2.0...v0.3.0) (2020-05-26)
 
 
